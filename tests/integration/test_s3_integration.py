@@ -38,7 +38,7 @@ async def test_s3_blob_service_integration(db_session):
         "us-east-1",
     )
     
-    service = BlobService(backend, db_session)
+    service = BlobService(db_session, backend)
     test_data = b"S3 service integration test"
     
     try:
