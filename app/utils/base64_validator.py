@@ -18,6 +18,11 @@ def validate_base64(data: str) -> None:
 
 def decode_base64(data: str) -> bytes:
     """Decode Base64 string to bytes."""
-    validate_base64(data)
-    return base64.b64decode(data)
+    if not data:
+        raise InvalidBase64Error("Base64 string cannot be empty")
+    
+    try:
+        return base64.b64decode(data)
+    except Exception as e:
+        raise InvalidBase64Error(f"Invalid Base64 encoding: {str(e)}") from e
 

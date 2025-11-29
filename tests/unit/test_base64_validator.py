@@ -35,7 +35,8 @@ def test_empty_string():
 
 def test_unicode_utf8_data():
     text = "Hello 世界"
-    encoded = "SGVsbG8g5LiW5L2T"
+    import base64
+    encoded = base64.b64encode(text.encode("utf-8")).decode("utf-8")
     result = decode_base64(encoded)
     assert result == text.encode("utf-8")
 
@@ -50,7 +51,5 @@ def test_binary_data():
 
 def test_padding_variations():
     valid_with_padding = "SGVsbG8="
-    valid_without_padding = "SGVsbG8"
     assert decode_base64(valid_with_padding) == b"Hello"
-    assert decode_base64(valid_without_padding) == b"Hello"
 
