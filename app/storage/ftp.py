@@ -61,17 +61,21 @@ class FTPStorageBackend(StorageBackend):
         
         try:
             path = self._get_path(blob_id)
-            if not await self.exists(blob_id):
-                raise BlobNotFoundError(f"Blob {blob_id} not found on FTP server")
-            
+            # Try to retrieve directly - download_stream will raise error if file doesn't exist
             data = bytearray()
-            async with self.client.download_stream(path) as stream:
-                while True:
-                    chunk = await stream.read(8192)
-                    if not chunk:
-                        break
-                    data.extend(chunk)
-            return bytes(data)
+            try:
+                async with self.client.download_stream(path) as stream:
+                    while True:
+                        chunk = await stream.read(8192)
+                        if not chunk:
+                            break
+                        data.extend(chunk)
+                return bytes(data)
+            except Exception as e:
+                # If download fails, check if file exists
+                if not await self.exists(blob_id):
+                    raise BlobNotFoundError(f"Blob {blob_id} not found on FTP server")
+                raise
         except BlobNotFoundError:
             raise
         except Exception as e:
@@ -84,12 +88,18 @@ class FTPStorageBackend(StorageBackend):
         
         try:
             path = self._get_path(blob_id)
-            files = await self.client.list()
-            filename = os.path.basename(path)
-            for file_info in files:
-                if file_info.name == filename:
-                    return True
-            return False
+            # Try to get file info directly - more reliable than listing
+            try:
+                await self.client.stat(path)
+                return True
+            except Exception:
+                # Fallback to listing if stat doesn't work
+                files = await self.client.list()
+                filename = os.path.basename(path)
+                for file_info in files:
+                    if file_info.name == filename:
+                        return True
+                return False
         except Exception:
             return False
 
