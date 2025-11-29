@@ -14,6 +14,12 @@ class Settings(BaseSettings):
     s3_bucket_name: str = ""
     s3_region: str = "us-east-1"
     
+    ftp_host: str | None = None
+    ftp_port: int = 21
+    ftp_username: str = "anonymous"
+    ftp_password: str = ""
+    ftp_base_dir: str = "/"
+    
     class Config:
         env_file = ".env"
 
