@@ -4,6 +4,7 @@ from app.config import settings
 from app.database import get_db
 from app.storage.base import StorageBackend
 from app.storage.database import DatabaseStorageBackend
+from app.storage.ftp import FTPStorageBackend
 from app.storage.local import LocalStorageBackend
 from app.storage.s3_compatible import S3CompatibleStorageBackend
 from app.utils.exceptions import StorageBackendError
@@ -25,7 +26,15 @@ async def get_storage_backend(db_session: AsyncSession) -> StorageBackend:
             settings.s3_region,
         )
     elif settings.storage_backend == "ftp":
-        raise StorageBackendError("FTP storage backend not implemented yet")
+        if not settings.ftp_host:
+            raise StorageBackendError("FTP configuration incomplete. Required: ftp_host")
+        return FTPStorageBackend(
+            settings.ftp_host,
+            settings.ftp_port,
+            settings.ftp_username,
+            settings.ftp_password,
+            settings.ftp_base_dir,
+        )
     else:
         raise StorageBackendError(f"Unknown storage backend: {settings.storage_backend}")
 
