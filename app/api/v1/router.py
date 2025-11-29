@@ -9,10 +9,11 @@ from app.api.v1.schemas import BlobCreateRequest, BlobResponse
 from app.database import get_db
 from app.services.blob_service import BlobService
 from app.storage import get_storage_backend
+from app.dependencies import verify_token
 from app.utils.base64_validator import decode_base64
 from app.utils.exceptions import BlobAlreadyExistsError, BlobNotFoundError, InvalidBase64Error
 
-router = APIRouter(prefix="/v1", tags=["blobs"])
+router = APIRouter(prefix="/v1", tags=["blobs"], dependencies=[Depends(verify_token)])
 
 
 @router.post("/blobs", response_model=BlobResponse, status_code=status.HTTP_201_CREATED)
