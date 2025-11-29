@@ -26,10 +26,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install pytest pytest-asyncio greenlet aiofiles
     
     - name: Run tests
       run: |
-        pytest tests/ -v --tb=short
+        python -m pytest tests/ -v --tb=short
     
     - name: Test summary
       if: always()
