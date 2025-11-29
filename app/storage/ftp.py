@@ -49,8 +49,8 @@ class FTPStorageBackend(StorageBackend):
         
         try:
             path = self._get_path(blob_id)
-            data_stream = BytesIO(data)
-            await self.client.upload_stream(path, data_stream)
+            async with self.client.upload_stream(path) as stream:
+                await stream.write(data)
         except Exception as e:
             raise StorageBackendError(f"Failed to store blob {blob_id} via FTP: {e}") from e
 
@@ -64,10 +64,14 @@ class FTPStorageBackend(StorageBackend):
             if not await self.exists(blob_id):
                 raise BlobNotFoundError(f"Blob {blob_id} not found on FTP server")
             
-            data_stream = BytesIO()
-            await self.client.download_stream(path, data_stream)
-            data_stream.seek(0)
-            return data_stream.read()
+            data = bytearray()
+            async with self.client.download_stream(path) as stream:
+                while True:
+                    chunk = await stream.read(8192)
+                    if not chunk:
+                        break
+                    data.extend(chunk)
+            return bytes(data)
         except BlobNotFoundError:
             raise
         except Exception as e:
