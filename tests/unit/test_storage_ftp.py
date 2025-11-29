@@ -25,10 +25,10 @@ async def test_ftp_store_success(mock_ftp_client):
         backend.client = mock_ftp_client
         
         mock_stream = AsyncMock()
-        mock_context = AsyncMock()
+        mock_context = MagicMock()
         mock_context.__aenter__ = AsyncMock(return_value=mock_stream)
         mock_context.__aexit__ = AsyncMock(return_value=None)
-        mock_ftp_client.upload_stream = AsyncMock(return_value=mock_context)
+        mock_ftp_client.upload_stream = MagicMock(return_value=mock_context)
         
         await backend.store("test-blob", b"test data")
         
@@ -49,10 +49,10 @@ async def test_ftp_retrieve_success(mock_ftp_client):
         
         mock_stream = AsyncMock()
         mock_stream.read = AsyncMock(side_effect=[b"test ", b"data", b""])
-        mock_context = AsyncMock()
+        mock_context = MagicMock()
         mock_context.__aenter__ = AsyncMock(return_value=mock_stream)
         mock_context.__aexit__ = AsyncMock(return_value=None)
-        mock_ftp_client.download_stream = AsyncMock(return_value=mock_context)
+        mock_ftp_client.download_stream = MagicMock(return_value=mock_context)
         
         result = await backend.retrieve("test-blob")
         
