@@ -9,6 +9,7 @@ from app.utils.exceptions import BlobNotFoundError, StorageBackendError
 def mock_ftp_client():
     client = AsyncMock()
     client.list = AsyncMock(return_value=[])
+    client.stat = AsyncMock()
     client.upload_stream = AsyncMock()
     client.download_stream = AsyncMock()
     client.remove_file = AsyncMock()
@@ -66,6 +67,15 @@ async def test_ftp_retrieve_not_found(mock_ftp_client):
     
     with patch("aioftp.Client", return_value=mock_ftp_client):
         backend.client = mock_ftp_client
+        
+        # Mock download_stream to raise exception (file doesn't exist)
+        mock_context = MagicMock()
+        mock_context.__aenter__ = AsyncMock(side_effect=Exception("File not found"))
+        mock_context.__aexit__ = AsyncMock(return_value=None)
+        mock_ftp_client.download_stream = MagicMock(return_value=mock_context)
+        
+        # Mock exists to return False
+        mock_ftp_client.stat = AsyncMock(side_effect=Exception("Not found"))
         mock_ftp_client.list.return_value = []
         
         with pytest.raises(BlobNotFoundError):
@@ -79,9 +89,8 @@ async def test_ftp_exists_true(mock_ftp_client):
     with patch("aioftp.Client", return_value=mock_ftp_client):
         backend.client = mock_ftp_client
         
-        file_info = MagicMock()
-        file_info.name = "test-blob"
-        mock_ftp_client.list.return_value = [file_info]
+        # Mock stat to succeed (file exists)
+        mock_ftp_client.stat = AsyncMock(return_value=None)
         
         result = await backend.exists("test-blob")
         assert result is True
@@ -93,6 +102,8 @@ async def test_ftp_exists_false(mock_ftp_client):
     
     with patch("aioftp.Client", return_value=mock_ftp_client):
         backend.client = mock_ftp_client
+        # Mock stat to fail (file doesn't exist), then fallback to list
+        mock_ftp_client.stat = AsyncMock(side_effect=Exception("Not found"))
         mock_ftp_client.list.return_value = []
         
         result = await backend.exists("non-existent")
