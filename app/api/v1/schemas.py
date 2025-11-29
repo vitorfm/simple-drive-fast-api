@@ -1,20 +1,25 @@
-"""API request/response schemas."""
-
 from datetime import datetime
 
 from pydantic import BaseModel, Field
 
 
 class BlobCreateRequest(BaseModel):
-    """Request schema for creating a blob."""
-
-    id: str = Field(..., min_length=1)
+    id: str = Field(..., description="Blob identifier")
     data: str = Field(..., description="Base64 encoded data")
 
 
-class BlobResponse(BaseModel):
-    """Response schema for blob data."""
+class BlobCreateResponse(BaseModel):
+    id: str
+    size: int
+    created_at: datetime
 
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat() + "Z"
+        }
+
+
+class BlobResponse(BaseModel):
     id: str
     data: str
     size: int
@@ -24,4 +29,3 @@ class BlobResponse(BaseModel):
         json_encoders = {
             datetime: lambda v: v.isoformat() + "Z"
         }
-
