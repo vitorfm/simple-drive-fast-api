@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./simpledrive.db"
     local_storage_path: str = "./storage"
     api_token: str = "dev-token"
+    debug: bool = False
     
     class Config:
         env_file = ".env"
