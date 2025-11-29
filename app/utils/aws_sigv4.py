@@ -1,6 +1,6 @@
 import hashlib
 import hmac
-from datetime import datetime
+from datetime import datetime, timezone
 from urllib.parse import quote, urlparse
 
 
@@ -72,7 +72,7 @@ def create_signature_v4(
     region: str = "us-east-1",
     service: str = "s3",
 ) -> dict[str, str]:
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     timestamp = now.strftime("%Y%m%dT%H%M%SZ")
     date_stamp = now.strftime("%Y%m%d")
     
@@ -86,15 +86,20 @@ def create_signature_v4(
         headers["x-amz-date"] = timestamp
     if "host" not in headers:
         headers["host"] = parsed.netloc
+    if "x-amz-content-sha256" not in headers:
+        headers["x-amz-content-sha256"] = payload_hash
+    if payload and "content-length" not in headers:
+        headers["content-length"] = str(len(payload))
     
+    canonical_headers_str, signed_headers = _canonical_headers(headers)
     canonical_req = _canonical_request(method, uri, query, headers, payload_hash)
     string_to_sign = _string_to_sign(timestamp, date_stamp, region, service, canonical_req)
     
     signing_key = _get_signature_key(secret_key, date_stamp, region, service)
-    signature = _hmac_sha256(signing_key, string_to_sign.encode()).hexdigest()
+    signature = _hmac_sha256(signing_key, string_to_sign.encode()).hex()
     
     scope = f"{date_stamp}/{region}/{service}/aws4_request"
-    auth_header = f"AWS4-HMAC-SHA256 Credential={access_key}/{scope}, SignedHeaders={_canonical_headers(headers)[1]}, Signature={signature}"
+    auth_header = f"AWS4-HMAC-SHA256 Credential={access_key}/{scope}, SignedHeaders={signed_headers}, Signature={signature}"
     
     headers["Authorization"] = auth_header
     return headers

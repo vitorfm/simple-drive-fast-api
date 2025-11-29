@@ -44,8 +44,12 @@ def test_signature_v4_different_regions():
     access_key = "AKIAIOSFODNN7EXAMPLE"
     secret_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
     
-    us_east = create_signature_v4("GET", url, headers, payload, access_key, secret_key, "us-east-1")
-    eu_west = create_signature_v4("GET", url, headers, payload, access_key, secret_key, "eu-west-1")
+    us_east = create_signature_v4("GET", url, headers.copy(), payload, access_key, secret_key, "us-east-1")
+    import time
+    time.sleep(0.1)
+    eu_west = create_signature_v4("GET", url, headers.copy(), payload, access_key, secret_key, "eu-west-1")
     
     assert us_east["Authorization"] != eu_west["Authorization"]
+    assert "us-east-1" in us_east["Authorization"]
+    assert "eu-west-1" in eu_west["Authorization"]
 
