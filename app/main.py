@@ -13,7 +13,6 @@ from app.utils.exceptions import (
 app = FastAPI(title="Simple Drive", version="1.0.0")
 
 app.include_router(v1_router)
-app.include_router(router)
 
 
 @app.exception_handler(InvalidBase64Error)
