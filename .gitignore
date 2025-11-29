@@ -6,6 +6,7 @@ __pycache__/
 env/
 venv/
 ENV/
+
 .venv
 *.db
 *.sqlite
@@ -17,3 +18,9 @@ dist/
 build/
 *.egg-info/
 
+# Docs - keep only PROJECT_PLAN.md in git
+docs/*
+!docs/PROJECT_PLAN.md
+# Docs - keep only PROJECT_PLAN.md in git
+docs/*
+!docs/PROJECT_PLAN.md
